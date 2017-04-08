@@ -70,6 +70,10 @@ class ObjDecoder {
   bool ParseMaterial(bool *error);
   bool ParseObject(bool *error);
 
+  bool ParseVid(bool *error);
+  bool ParseVki(bool *error);
+  bool ParseVkw(bool *error);
+
   // Parses triplet of position, tex coords and normal indices.
   // Returns false on error.
   bool ParseVertexIndices(std::array<int32_t, 3> *out_indices);
@@ -97,6 +101,15 @@ class ObjDecoder {
   int norm_att_id_;
   int material_att_id_;
   int sub_obj_att_id_;  // Attribute id for storing sub-objects.
+
+  // added by llam
+  int num_vid_;//vertex id
+  int num_vki_;//vertex skeleton indices
+  int num_vkw_;//vertex skeleton weight
+
+  int vid_att_id_;
+  int vki_att_id_;
+  int vkw_att_id_;
 
   bool deduplicate_input_values_;
 

@@ -34,6 +34,14 @@ ObjDecoder::ObjDecoder()
       norm_att_id_(-1),
       material_att_id_(-1),
       sub_obj_att_id_(-1),
+
+      num_vid_(0),
+      num_vki_(0),
+      num_vkw_(0),
+      vid_att_id_(-1),
+      vki_att_id_(-1),
+      vkw_att_id_(-1),
+
       deduplicate_input_values_(true),
       last_material_id_(0),
       open_material_file_(false),
@@ -162,6 +170,40 @@ bool ObjDecoder::DecodeInternal() {
     out_point_cloud_->attribute(sub_obj_att_id_)->set_custom_id(1);
   }
 
+  if (num_vid_ > 0) {
+    std::cout<<"vid found"<<std::endl;
+    GeometryAttribute va;
+    va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_FLOAT32, false, 4, 0);
+    vid_att_id_ =
+            out_point_cloud_->AddAttribute(va, true, num_positions_);
+    // Fill the vid
+    float k = 0;
+    for (AttributeValueIndex i(0); i < num_positions_; ++i, k=k+1) {
+      out_point_cloud_->attribute(vid_att_id_)->SetAttributeValue(i, &k);
+    }
+    // Set custom id 2 for vid
+    out_point_cloud_->attribute(vid_att_id_)->set_custom_id(2);
+  }
+  if (num_vki_ > 0) {
+    std::cout << "skeleton indices found" << std::endl;
+    GeometryAttribute va;
+    va.Init(GeometryAttribute::GENERIC, nullptr, 4, DT_FLOAT32, false,
+            1 * 4, 0);
+    vki_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vki_);
+    printf("vki att id %d\n",vki_att_id_);
+    // Set custom id 3 for vki
+    out_point_cloud_->attribute(vki_att_id_)->set_custom_id(3);
+  }
+  if (num_vkw_ > 0) {
+    std::cout << "skeleton weight found" << std::endl;
+    GeometryAttribute va;
+    va.Init(GeometryAttribute::GENERIC, nullptr, 4, DT_FLOAT32, false,
+            sizeof(float) * 4, 0);
+    vkw_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vkw_);
+    // Set custom id 4 for vkw
+    out_point_cloud_->attribute(vkw_att_id_)->set_custom_id(4);
+  }
+
   // Perform a second iteration of parsing and fill all the data.
   counting_mode_ = false;
   ResetCounters();
@@ -195,6 +237,10 @@ void ObjDecoder::ResetCounters() {
   num_normals_ = 0;
   last_material_id_ = 0;
   num_sub_objects_ = 0;
+
+  num_vid_ = 0;
+  num_vki_ = 0;
+  num_vkw_ = 0;
 }
 
 bool ObjDecoder::ParseDefinition(bool *error) {
@@ -204,6 +250,14 @@ bool ObjDecoder::ParseDefinition(bool *error) {
     // End of file reached?.
     return false;
   }
+
+  if (ParseVid(error))
+    return true;
+  if (ParseVki(error))
+    return true;
+  if (ParseVkw(error))
+    return true;
+
   if (c == '#') {
     // Comment, ignore the line.
     parser::SkipLine(buffer());
@@ -611,6 +665,72 @@ bool ObjDecoder::ParseMaterialFileDefinition(bool * /* error */) {
     // Add new material to our map.
     material_name_to_id_[str] = material_name_to_id_.size();
   }
+  parser::SkipLine(buffer());
+  return true;
+}
+
+bool ObjDecoder::ParseVid(bool *error) {
+  std::array<char, 4> c;
+  if (!buffer()->Peek(&c)) {
+    return false;
+  }
+  if (c[0] != '#' || c[1] != 'v' || c[2] != 'i' || c[3] != 'd')
+    return false;
+  ++num_vid_;
+  parser::SkipLine(buffer());
+  return true;
+}
+
+bool ObjDecoder::ParseVki(bool *error) {
+  std::array<char, 4> c;
+  if (!buffer()->Peek(&c)) {
+    return false;
+  }
+  if (c[0] != '#' || c[1] != 'v' || c[2] != 'k' || c[3] != 'i')
+    return false;
+
+  buffer()->Advance(4);
+  if (!counting_mode_) {
+    float val[4];
+    for (int i = 0; i < 4; ++i) {
+      parser::SkipWhitespace(buffer());
+      if (!parser::ParseFloat(buffer(), val + i)) {
+        *error = true;
+        // The definition is processed so return true.
+        return true;
+      }
+    }
+    out_point_cloud_->attribute(vki_att_id_)
+            ->SetAttributeValue(AttributeValueIndex(num_vki_), val);
+  }
+  ++num_vki_;
+  parser::SkipLine(buffer());
+  return true;
+}
+
+bool ObjDecoder::ParseVkw(bool *error) {
+  std::array<char, 4> c;
+  if (!buffer()->Peek(&c)) {
+    return false;
+  }
+  if (c[0] != '#' || c[1] != 'v' || c[2] != 'k' || c[3] != 'w')
+    return false;
+
+  buffer()->Advance(4);
+  if (!counting_mode_) {
+    float val[4];
+    for (int i = 0; i < 4; ++i) {
+      parser::SkipWhitespace(buffer());
+      if (!parser::ParseFloat(buffer(), val + i)) {
+        *error = true;
+        // The definition is processed so return true.
+        return true;
+      }
+    }
+    out_point_cloud_->attribute(vkw_att_id_)
+            ->SetAttributeValue(AttributeValueIndex(num_vkw_), val);
+  }
+  ++num_vkw_;
   parser::SkipLine(buffer());
   return true;
 }
