@@ -221,6 +221,34 @@ int main(int argc, char **argv) {
 
   // Setup encoder options.
   draco::EncoderOptions encoder_options = draco::CreateDefaultEncoderOptions();
+
+    {
+        // add quantization for new attribute
+        int have_id[3];
+        have_id[0] = (*pc.get()).GetNamedAttributeId(draco::GeometryAttribute::POSITION);
+        have_id[1] = (*pc.get()).GetNamedAttributeId(draco::GeometryAttribute::TEX_COORD);
+        have_id[2] = (*pc.get()).GetNamedAttributeId(draco::GeometryAttribute::NORMAL);
+        const int vid_custom_id = 2;
+        const int vki_custom_id = 3;
+        const int vkw_custom_id = 4;
+        for (int i = 0; i < (*pc.get()).num_attributes(); i++) {
+            draco::GeometryAttribute *a = (*pc.get()).attribute(i);
+            if (a->attribute_type() != draco::GeometryAttribute::GENERIC) continue;
+            draco::Options *o;
+            switch (a->custom_id()){
+                case vid_custom_id:case vki_custom_id:
+                    o = encoder_options.GetAttributeOptions(i);
+                    SetAttributeQuantization(o, 12);
+                    break;
+                case vkw_custom_id:
+                    o = encoder_options.GetAttributeOptions(i);
+                    SetAttributeQuantization(o, 8);
+                    break;
+                default:continue;
+            }
+        }
+    }
+
   if (options.pos_quantization_bits > 0) {
     draco::SetNamedAttributeQuantization(&encoder_options, *pc.get(),
                                          draco::GeometryAttribute::POSITION,
