@@ -190,7 +190,6 @@ bool ObjDecoder::DecodeInternal() {
     va.Init(GeometryAttribute::GENERIC, nullptr, 4, DT_FLOAT32, false,
             1 * 4, 0);
     vki_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vki_);
-    printf("vki att id %d\n",vki_att_id_);
     // Set custom id 3 for vki
     out_point_cloud_->attribute(vki_att_id_)->set_custom_id(3);
   }
