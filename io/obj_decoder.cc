@@ -42,7 +42,8 @@ ObjDecoder::ObjDecoder()
       vki_att_id_(-1),
       vkw_att_id_(-1),
 
-      deduplicate_input_values_(true),
+      //deduplicate_input_values_(true),
+      deduplicate_input_values_(false),
       last_material_id_(0),
       open_material_file_(false),
       out_mesh_(nullptr),
