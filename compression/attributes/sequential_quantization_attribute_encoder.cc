@@ -127,6 +127,8 @@ bool SequentialQuantizationAttributeEncoder::QuantizeValues(
   quantizer.Init(max_value_dif_, max_quantized_value);
   for (uint32_t i = 0; i < point_ids.size(); ++i) {
     const AttributeValueIndex att_id = attrib->mapped_index(point_ids[i]);
+
+    if(attrib->attribute_type()==GeometryAttribute::GENERIC) printf("attrib mapped index %d\n", att_id);
     attribute()->GetValue(att_id, att_val.get());
     for (int c = 0; c < num_components; ++c) {
       const float value = (att_val[c] - min_value_[c]);
@@ -134,6 +136,7 @@ bool SequentialQuantizationAttributeEncoder::QuantizeValues(
       values()->push_back(q_val);
     }
   }
+  if(attrib->attribute_type()==GeometryAttribute::GENERIC) printf("end\n");
   return true;
 }
 
