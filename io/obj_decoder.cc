@@ -176,8 +176,8 @@ bool ObjDecoder::DecodeInternal() {
     GeometryAttribute va;
     va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_FLOAT32, false, 4, 0);
     vid_att_id_ =
-//            out_point_cloud_->AddAttribute(va, true, num_positions_);
-            out_point_cloud_->AddAttribute(va, false, num_positions_);
+            out_point_cloud_->AddAttribute(va, true, num_positions_);
+//            out_point_cloud_->AddAttribute(va, false, num_positions_);
     // Fill the vid
     float k = 0;
     for (AttributeValueIndex i(0); i < num_positions_; ++i, k=k+1) {
@@ -191,8 +191,8 @@ bool ObjDecoder::DecodeInternal() {
     GeometryAttribute va;
     va.Init(GeometryAttribute::GENERIC, nullptr, 4, DT_FLOAT32, false,
             1 * 4, 0);
-//    vki_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vki_);
-        vki_att_id_ = out_point_cloud_->AddAttribute(va, false, num_vki_);
+    vki_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vki_);
+//        vki_att_id_ = out_point_cloud_->AddAttribute(va, false, num_vki_);
 
     // Set custom id 3 for vki
     out_point_cloud_->attribute(vki_att_id_)->set_custom_id(3);
@@ -202,8 +202,8 @@ bool ObjDecoder::DecodeInternal() {
     GeometryAttribute va;
     va.Init(GeometryAttribute::GENERIC, nullptr, 4, DT_FLOAT32, false,
             sizeof(float) * 4, 0);
-//    vkw_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vkw_);
-        vkw_att_id_ = out_point_cloud_->AddAttribute(va, false, num_vkw_);
+    vkw_att_id_ = out_point_cloud_->AddAttribute(va, true, num_vkw_);
+//        vkw_att_id_ = out_point_cloud_->AddAttribute(va, false, num_vkw_);
     // Set custom id 4 for vkw
     out_point_cloud_->attribute(vkw_att_id_)->set_custom_id(4);
   }
@@ -611,19 +611,20 @@ void ObjDecoder::MapPointToVertexIndices(
         ->SetPointMapEntry(vert_id, AttributeValueIndex(sub_obj_id));
   }
 
-  // Assign vid index to the point
-  if(vid_att_id_ >= 0){
-      out_point_cloud_->attribute(vid_att_id_)->SetPointMapEntry(vert_id, AttributeValueIndex(vert_id.value()));
-  }
+//  // Assign vid index to the point
+//  if(vid_att_id_ >= 0){
+//      out_point_cloud_->attribute(vid_att_id_)->SetPointMapEntry(vert_id, AttributeValueIndex(vert_id.value()));
+//  }
+//
+//  //
+//  if(vki_att_id_ >= 0){
+//    out_point_cloud_->attribute(vki_att_id_)->SetPointMapEntry(vert_id, AttributeValueIndex(vert_id.value()));
+//  }
+//  //
+//  if(vkw_att_id_ >= 0){
+//    out_point_cloud_->attribute(vkw_att_id_)->SetPointMapEntry(vert_id, AttributeValueIndex(vert_id.value()));
+//  }
 
-  //
-  if(vki_att_id_ >= 0){
-    out_point_cloud_->attribute(vki_att_id_)->SetPointMapEntry(vert_id, AttributeValueIndex(vert_id.value()));
-  }
-  //
-  if(vkw_att_id_ >= 0){
-    out_point_cloud_->attribute(vkw_att_id_)->SetPointMapEntry(vert_id, AttributeValueIndex(vert_id.value()));
-  }
 }
 
 bool ObjDecoder::ParseMaterialFile(const std::string &file_name, bool *error) {

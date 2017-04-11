@@ -172,7 +172,7 @@ bool PointCloud::DeduplicateAttributeValues() {
     return false;  // Unexcpected attribute size.
   // Deduplicate all attributes.
   for (int32_t att_id = 0; att_id < num_attributes(); ++att_id) {
-//    if(attribute(att_id)->attribute_type()) continue;
+    if(attribute(att_id)->attribute_type()) continue;
     if (!attribute(att_id)->DeduplicateValues(*attribute(att_id)))
       return false;
   }
