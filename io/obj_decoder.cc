@@ -22,6 +22,8 @@
 
 namespace draco {
 
+static int index_att_id_ = -1;
+
 ObjDecoder::ObjDecoder()
     : counting_mode_(true),
       num_obj_faces_(0),
@@ -162,6 +164,16 @@ bool ObjDecoder::DecodeInternal() {
     out_point_cloud_->attribute(sub_obj_att_id_)->set_custom_id(1);
   }
 
+  {//add generic attr for compress order finding
+      GeometryAttribute va;
+      va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, sizeof(unsigned), 0);
+      index_att_id_ = out_point_cloud_->AddAttribute(va, false, num_positions_);
+      for (AttributeValueIndex i(0); i < num_positions_; ++i) {
+          out_point_cloud_->attribute(index_att_id_)->SetAttributeValue(i, &i);
+      }
+      out_point_cloud_->attribute(index_att_id_)->set_custom_id(2);
+  }
+
   // Perform a second iteration of parsing and fill all the data.
   counting_mode_ = false;
   ResetCounters();
@@ -185,17 +197,6 @@ bool ObjDecoder::DecodeInternal() {
     out_point_cloud_->DeduplicateAttributeValues();
   }
   out_point_cloud_->DeduplicatePointIds();
-
-  {//add generic attr for compress order finding
-    GeometryAttribute va;
-    va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, sizeof(unsigned), 0);
-    int index_att_id_ = out_point_cloud_->AddAttribute(va, true, num_positions_);
-    for (AttributeValueIndex i(0); i < num_positions_; ++i) {
-      out_point_cloud_->attribute(index_att_id_)->SetAttributeValue(i, &i);
-    }
-    out_point_cloud_->attribute(index_att_id_)->set_custom_id(2);
-  }
-
   return true;
 }
 
@@ -522,6 +523,17 @@ void ObjDecoder::MapPointToVertexIndices(
         ->SetPointMapEntry(vert_id,
                            AttributeValueIndex(num_positions_ + indices[0]));
   }
+
+
+    // set attribute index
+    if (indices[0] > 0) {
+        out_point_cloud_->attribute(index_att_id_)
+                ->SetPointMapEntry(vert_id, AttributeValueIndex(indices[0] - 1));
+    } else if (indices[0] < 0) {
+        out_point_cloud_->attribute(index_att_id_)
+                ->SetPointMapEntry(vert_id,
+                                   AttributeValueIndex(num_positions_ + indices[0]));
+    }
 
   if (indices[1] > 0) {
     out_point_cloud_->attribute(tex_att_id_)

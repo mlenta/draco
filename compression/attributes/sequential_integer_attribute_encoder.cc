@@ -146,11 +146,22 @@ bool SequentialIntegerAttributeEncoder::PrepareValues(
   const int num_entries = point_ids.size();
   values_.resize(num_entries * num_components);
   int dst_index = 0;
+
+  std::cout<<"value map, att id "<<attrib->attribute_type()<<std::endl;
+  for (int i = 0; i < num_entries; ++i) {
+    std::cout<<point_ids[i]<<":"<<attrib->mapped_index(point_ids[i])<<std::endl;;
+  }
+
+
   for (int i = 0; i < num_entries; ++i) {
     const AttributeValueIndex att_id = attrib->mapped_index(point_ids[i]);
     attrib->ConvertValue<int32_t>(att_id, &values_[dst_index]);
+    std::cout<<"value "<<values_[i]<<std::endl;
     dst_index += num_components;
   }
+
+
+
   return true;
 }
 

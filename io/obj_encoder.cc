@@ -74,20 +74,21 @@ bool ObjEncoder::EncodeInternal() {
   if (in_mesh_ && !EncodeFaces())
     return false;
 
-//  //encode generic attribute
-//  std::cerr<<"#hacking"<<std::endl;
-//  for (int32_t att_id = 0; att_id < in_point_cloud_->num_attributes(); ++att_id){
-//    const PointAttribute*const att = in_point_cloud_->attribute(att_id);
-//    if(att->attribute_type() != GeometryAttribute::GENERIC) continue; //|| att->custom_id() != 2) continue;
-//    std::array<unsigned, 1>value;
-//    for(AttributeValueIndex i(0); i < att->size(); ++i){
-//      if (!att->ConvertValue<unsigned, 1>(i, &value[0]))
-//        return false;
-//    }
-//    std::cerr<<value[0]<<std::endl;
-//  }
-//  std::cerr<<"#hacking end"<<std::endl;
-
+  //encode generic attribute
+  std::cerr<<"#hacking"<<std::endl;
+  for (int32_t att_id = 0; att_id < in_point_cloud_->num_attributes(); ++att_id){
+    const PointAttribute*const att = in_point_cloud_->attribute(att_id);
+    if(att->attribute_type() != GeometryAttribute::GENERIC || att->custom_id() != 2) continue;
+    std::array<unsigned, 1>value;
+    std::cerr<<"#custom id:"<<att->custom_id()<<std::endl;
+    std::cerr<<"#num:"<<att->size()<<std::endl;
+    for(AttributeValueIndex i(0); i < att->size(); ++i){
+      if (!att->ConvertValue<unsigned, 1>(i, &value[0]))
+        return false;
+      std::cerr<<value[0]<<std::endl;
+    }
+  }
+  std::cerr<<"#hacking end"<<std::endl;
 
   return true;
 }

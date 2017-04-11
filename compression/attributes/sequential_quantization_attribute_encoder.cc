@@ -36,6 +36,7 @@ bool SequentialQuantizationAttributeEncoder::Initialize(
 
 bool SequentialQuantizationAttributeEncoder::PrepareValues(
     const std::vector<PointIndex> &point_ids) {
+  printf("#pts_ids in preparevalue of seqQuantAttEncoder %d\n",point_ids.size());
   if (!QuantizeValues(point_ids))
     return false;
   return true;
