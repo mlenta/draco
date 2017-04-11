@@ -185,6 +185,17 @@ bool ObjDecoder::DecodeInternal() {
     out_point_cloud_->DeduplicateAttributeValues();
   }
   out_point_cloud_->DeduplicatePointIds();
+
+  {//add generic attr for compress order finding
+    GeometryAttribute va;
+    va.Init(GeometryAttribute::GENERIC, nullptr, 1, DT_UINT32, false, sizeof(unsigned), 0);
+    int index_att_id_ = out_point_cloud_->AddAttribute(va, true, num_positions_);
+    for (AttributeValueIndex i(0); i < num_positions_; ++i) {
+      out_point_cloud_->attribute(index_att_id_)->SetAttributeValue(i, &i);
+    }
+    out_point_cloud_->attribute(index_att_id_)->set_custom_id(2);
+  }
+
   return true;
 }
 
