@@ -109,4 +109,26 @@ bool WebIDLWrapper::GetAttributeFloatForAllPoints(
   return true;
 }
 
+bool WebIDLWrapper::GetAttributeIntForAllPoints(
+        const PointCloud &pc, const PointAttribute &pa,
+        DracoInt32Array *out_values) {
+  const int components = pa.components_count();
+  const int num_points = pc.num_points();
+  const int num_entries = num_points * components;
+  const int kMaxAttributeFloatValues = 4;
+  int values[kMaxAttributeFloatValues] = {-1, -1, -1, -1};
+  int entry_id = 0;
+
+  out_values->SetValues(nullptr, num_entries);
+  for (PointIndex i(0); i < num_points; ++i) {
+    const AttributeValueIndex val_index = pa.mapped_index(i);
+    if (!pa.ConvertValue<int>(val_index, values))
+      return false;
+    for (int j = 0; j < components; ++j) {
+      out_values->SetValue(entry_id++, values[j]);
+    }
+  }
+  return true;
+}
+
 }  // namespace draco

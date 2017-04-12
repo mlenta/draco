@@ -52,6 +52,8 @@ class DracoInt32Array {
   int GetValue(int index) const;
   bool SetValues(const int *values, int count);
 
+  void SetValue(int index, int val) { values_[index] = val; }
+
  private:
   std::vector<int> values_;
 };
@@ -94,6 +96,13 @@ class WebIDLWrapper {
   static bool GetAttributeFloatForAllPoints(const PointCloud &pc,
                                             const PointAttribute &pa,
                                             DracoFloat32Array *out_values);
+
+
+  // Returns int attribute values for all point ids of the point cloud.
+  // I.e., the |out_values| is going to contain m.num_points() entries.
+  static bool GetAttributeIntForAllPoints(const PointCloud &pc,
+                                            const PointAttribute &pa,
+                                            DracoInt32Array *out_values);
 };
 
 }  // namespace draco
