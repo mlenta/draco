@@ -31,6 +31,11 @@ struct Options {
   int tex_coords_quantization_bits;
   int normals_quantization_bits;
   int compression_level;
+
+  int vid_quantization_bits;
+  int vki_quantization_bits;
+  int vkw_quantization_bits;
+
   std::string input;
   std::string output;
 };
@@ -40,6 +45,9 @@ Options::Options()
       pos_quantization_bits(14),
       tex_coords_quantization_bits(12),
       normals_quantization_bits(10),
+      vid_quantization_bits(14),
+      vki_quantization_bits(8),
+      vkw_quantization_bits(8),
       compression_level(7) {}
 
 void Usage() {
@@ -64,6 +72,18 @@ void Usage() {
   printf(
       "  -cl <value>           compression level [0-10], most=10, least=0, "
       "default=7.\n");
+    {
+        printf(
+                "  -qvid <value>           quantization bits for vertex id "
+                "default=14.\n");
+        printf(
+                "  -qvki <value>           quantization bits for vertex skeleton indicies "
+                "default=8.\n");
+        printf(
+                "  -qvkw <value>           quantization bits for vertex skeleton weight "
+                "default=8.\n");
+    }
+
 }
 
 int StringToInt(const std::string &s) {
@@ -193,6 +213,12 @@ int main(int argc, char **argv) {
       }
     } else if (!strcmp("-cl", argv[i]) && i < argc_check) {
       options.compression_level = StringToInt(argv[++i]);
+    } else if (!strcmp("-qvid", argv[i]) && i < argc_check) {
+        options.vid_quantization_bits = StringToInt(argv[++i]);
+    } else if (!strcmp("-qvki", argv[i]) && i < argc_check) {
+        options.vki_quantization_bits = StringToInt(argv[++i]);
+    } else if (!strcmp("-qvkw", argv[i]) && i < argc_check) {
+        options.vkw_quantization_bits = StringToInt(argv[++i]);
     }
   }
   if (argc < 3 || options.input.empty()) {
@@ -224,26 +250,17 @@ int main(int argc, char **argv) {
 
     {
         // add quantization for new attribute
-        int have_id[3];
-        have_id[0] = (*pc.get()).GetNamedAttributeId(draco::GeometryAttribute::POSITION);
-        have_id[1] = (*pc.get()).GetNamedAttributeId(draco::GeometryAttribute::TEX_COORD);
-        have_id[2] = (*pc.get()).GetNamedAttributeId(draco::GeometryAttribute::NORMAL);
         const int vid_custom_id = 2;
         const int vki_custom_id = 3;
         const int vkw_custom_id = 4;
         for (int i = 0; i < (*pc.get()).num_attributes(); i++) {
             draco::GeometryAttribute *a = (*pc.get()).attribute(i);
             if (a->attribute_type() != draco::GeometryAttribute::GENERIC) continue;
-            draco::Options *o;
+            draco::Options *o = encoder_options.GetAttributeOptions(i);
             switch (a->custom_id()){
-                case vid_custom_id:case vki_custom_id:
-                    o = encoder_options.GetAttributeOptions(i);
-                    SetAttributeQuantization(o, 12);
-                    break;
-                case vkw_custom_id:
-                    o = encoder_options.GetAttributeOptions(i);
-                    SetAttributeQuantization(o, 8);
-                    break;
+                case vid_custom_id:SetAttributeQuantization(o, options.vid_quantization_bits);break;
+                case vki_custom_id:SetAttributeQuantization(o, options.vki_quantization_bits);break;
+                case vkw_custom_id:SetAttributeQuantization(o, options.vkw_quantization_bits);break;
                 default:continue;
             }
         }
